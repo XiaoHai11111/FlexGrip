@@ -1,13 +1,22 @@
-/*
-*/
 #include <Arduino.h>
-#include "HAL/HAL.h"
+
 #include "Configs/Config.h"
+#include "HAL/HAL.h"
 
 static HAL::Grip_Info_t grip_info;
-static unsigned long lastReadTime = 0; // 上次读取时间
-static float lastAngle_left = 0; // 上次的角度值
-static float lastAngle_right = 0; // 上次的角度值
+static uint32_t lastAngleMicros = 0;
+static float lastAngleLeft = 0.0f;
+static float lastAngleRight = 0.0f;
+
+namespace
+{
+    float adcToAngle(float raw)
+    {
+        // ADC raw (0..4095) -> mV (0..3300) -> degree (0..333.3)
+        float mv = raw * (ANGLE_ADC_VOLTAGE_MAX / ANGLE_ADC_RAW_MAX);
+        return mv * (ANGLE_ADC_DEGREE_SCALE / ANGLE_ADC_VOLTAGE_SCALE);
+    }
+}
 
 void HAL::ADC_Init()
 {
@@ -17,88 +26,58 @@ void HAL::ADC_Init()
     pinMode(CURRENT_PIN, INPUT);
 }
 
-void HAL::ADC_Angle_Update() {
-    unsigned long currentMillis = millis();
+void HAL::ADC_Angle_Update()
+{
+    const int numSamples = 10;
+    uint32_t leftSum = 0;
+    uint32_t rightSum = 0;
 
-    // 初始化累加器和计数器
-    uint32_t adcValue_left_sum = 0;
-    uint32_t adcValue_right_sum = 0;
-    const int num_samples = 10;  // 采样次数
-
-    // 进行10次采样并累加
-    for (int i = 0; i < num_samples; i++) {
-        adcValue_left_sum += analogRead(ANGLE_LEFT_PIN);
-        adcValue_right_sum += analogRead(ANGLE_RIGHT_PIN);
-        delay(5); // 如果需要减少采样间隔，可以调整这里的延迟
+    for (int i = 0; i < numSamples; i++)
+    {
+        leftSum += analogRead(ANGLE_LEFT_PIN);
+        rightSum += analogRead(ANGLE_RIGHT_PIN);
     }
 
-    // 计算平均值
-    uint32_t adcValue_left_avg = adcValue_left_sum / num_samples;
-    uint32_t adcValue_right_avg = adcValue_right_sum / num_samples;
+    float angleLeft = adcToAngle((float)leftSum / numSamples);
+    float angleRight = adcToAngle((float)rightSum / numSamples);
 
-    // 将平均值映射到电压
-    int vol_left = map(adcValue_left_avg, 0, 4095, 0, 3300);
-    int vol_right = map(adcValue_right_avg, 0, 4095, 0, 3300);
+    uint32_t now = micros();
+    float dtSec = (float)(now - lastAngleMicros) / 1000000.0f;
+    if (dtSec <= 0.0f)
+        dtSec = 0.001f;
 
-    // 将电压映射为角度
-    float angle_left = map(vol_left, 0, 2500, 0, 333.3);
-    float angle_right = map(vol_right, 0, 2500, 0, 333.3);
+    grip_info.angle_left = angleLeft;
+    grip_info.angle_right = angleRight;
+    grip_info.speed_left = (angleLeft - lastAngleLeft) / dtSec;
+    grip_info.speed_right = (angleRight - lastAngleRight) / dtSec;
 
-    // 计算时间差
-    unsigned long timeDiff = currentMillis - lastReadTime;
-
-    // 计算速度（角度变化除以时间变化）
-    float speed_left = (angle_left - lastAngle_left) / (timeDiff / 1000.0); // 转换时间差为秒
-    float speed_right = (angle_right - lastAngle_right) / (timeDiff / 1000.0); // 转换时间差为秒
-
-    // 更新上次读取时间和角度
-    lastReadTime = currentMillis;
-    lastAngle_left = angle_left;
-    lastAngle_right = angle_right;
-
-    // 存储当前角度和速度
-    grip_info.angle_left = angle_left;
-    grip_info.speed_left = speed_left;
-    grip_info.angle_right = angle_right;
-    grip_info.speed_right = speed_right;
-
-    Serial.printf("angle_left = %.2f°, speed_left = %.2f°/s, angle_right = %.2f°, speed_right = %.2f°/s",
-                    grip_info.angle_left, grip_info.speed_left, grip_info.angle_right, grip_info.speed_right);
-    Serial.println();
+    lastAngleMicros = now;
+    lastAngleLeft = angleLeft;
+    lastAngleRight = angleRight;
 }
 
 void HAL::ADC_Current_Update()
 {
-    uint32_t adcValue_input_sum = 0;
-    uint32_t adcValue_current_sum = 0;
-    const int num_samples = 10;  // 采样次数
+    const int numSamples = 10;
+    uint32_t inputSum = 0;
+    uint32_t currentSum = 0;
 
-    // 进行10次采样并累加
-    for (int i = 0; i < num_samples; i++) {
-        adcValue_input_sum += analogRead(CURRENT_INPUT_PIN);
-        adcValue_current_sum += analogRead(CURRENT_PIN);
-        delay(5);
-    }
-
-    // 计算平均值
-    uint32_t adcValue_input_avg = adcValue_input_sum / num_samples;
-    uint32_t adcValue_current_avg = adcValue_current_sum / num_samples;
-
-        // 将平均值映射到电压
-    int vol_input = map(adcValue_input_avg, 0, 4095, 0, 3300);
-    int vol_current = map(adcValue_current_avg, 0, 4095, 0, 3300);
-
-    int current = 2*(vol_input - vol_current);
-    if (current < 0)
+    for (int i = 0; i < numSamples; i++)
     {
-        current = 0;
+        inputSum += analogRead(CURRENT_INPUT_PIN);
+        currentSum += analogRead(CURRENT_PIN);
     }
-    
+
+    float volInput = ((float)inputSum / numSamples) *
+                     (ANGLE_ADC_VOLTAGE_MAX / ANGLE_ADC_RAW_MAX);
+    float volCurrent = ((float)currentSum / numSamples) *
+                       (ANGLE_ADC_VOLTAGE_MAX / ANGLE_ADC_RAW_MAX);
+
+    float current = 2.0f * (volInput - volCurrent);
+    if (current < 0.0f)
+        current = 0.0f;
+
     grip_info.current = current;
-
-    Serial.printf("current = %d", current);
-    Serial.println();
-
 }
 
 void HAL::ADC_GetInfo(Grip_Info_t* info)

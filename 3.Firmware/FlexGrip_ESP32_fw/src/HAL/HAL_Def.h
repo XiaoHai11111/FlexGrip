@@ -5,6 +5,13 @@
 
 namespace HAL
 {
+    /* Motor selection */
+    typedef enum
+    {
+        MOTOR_LEFT = 0,
+        MOTOR_RIGHT = 1
+    } Motor_t;
+
     /* The angle，speed and current of motor */
     typedef struct
     {
@@ -14,15 +21,6 @@ namespace HAL
         float speed_right;
         float current;
     } Grip_Info_t;
-
-    typedef struct
-    {
-        double Kp;
-        double Ki;
-        double Kd;
-        double previousError;
-        double integral;
-    } PID_Param_t;
 
 }
 

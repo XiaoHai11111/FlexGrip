@@ -32,16 +32,48 @@
 #define MAX_SPEED 255
 #define MIN_SPEED 0
 
-/* Finger Angle */
-#define FINGER_OPEN             45
-#define FINGER_CLOSE            0
+/* Angle sensor calibration: ADC raw -> mV -> degree */
+#define ANGLE_ADC_RAW_MAX           4095.0f
+#define ANGLE_ADC_VOLTAGE_MAX       3300.0f
+#define ANGLE_ADC_VOLTAGE_SCALE     2500.0f
+#define ANGLE_ADC_DEGREE_SCALE      333.3f
 
-/* Encoder Angle Offset */
-#define ANGLE_OFFSET_LEFT       233
-#define Angle_OFFSET_RIGHT      62
+/* Gripper kinematics (degree, values read from the angle sensors) */
+#define GRIP_LEFT_CLOSED_ANGLE      143.0f
+#define GRIP_LEFT_OPEN_ANGLE        98.0f
+#define GRIP_RIGHT_CLOSED_ANGLE     149.0f
+#define GRIP_RIGHT_OPEN_ANGLE       194.0f
+
+/* Gripper command limits (0 = closed/clamped, 45 = fully open) */
+#define GRIP_OPEN_MIN               0.0f
+#define GRIP_OPEN_MAX               45.0f
+
+/* Position PID */
+#define GRIP_PID_KP                 15.0f
+#define GRIP_PID_KD                 1.0f
+#define GRIP_PID_OUTPUT_MAX         255.0f
+#define GRIP_PID_DEADBAND           1.0f
+#define GRIP_ANGLE_FILTER_ALPHA     0.35f
+#define GRIP_LEFT_KI                50.0f
+#define GRIP_RIGHT_KI               6.0f
+
+/* Motion profile (same speed for both motors -> synchronised motion) */
+#define GRIP_MOTION_SPEED_DEG_S     40.0f
+#define GRIP_LEFT_FF                4.5f
+#define GRIP_RIGHT_FF               2.2f
+#define GRIP_VEL_DEADBAND           30.0f
+
+/* CAN protocol (DummyHand compatible) */
+#define GRIP_CAN_NODE_ID            7
+#define GRIP_CAN_MODE_SET_CURRENT   0x01
+#define GRIP_CAN_MODE_SET_ANGLE     0x02
 
 /* CAN */
 #define CANR_PIN                4
 #define CAND_PIN                5
+
+/* Encoder Angle Offset (kept for future calibration, currently unused) */
+#define ANGLE_OFFSET_LEFT       233
+#define ANGLE_OFFSET_RIGHT      62
 
 #endif

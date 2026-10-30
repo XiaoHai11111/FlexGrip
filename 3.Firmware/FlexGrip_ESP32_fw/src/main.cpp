@@ -22,5 +22,4 @@ void setup()
 void loop()
 {
     HAL::Update();
-    delay(500);
 }

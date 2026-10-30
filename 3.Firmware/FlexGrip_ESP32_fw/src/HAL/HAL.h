@@ -13,6 +13,7 @@ namespace HAL
 
     /* Serial */
     void Serial_Init();
+    void Serial_Update();
 
     /* ADC_Angle*/
     void ADC_Init();
@@ -24,9 +25,12 @@ namespace HAL
     void Motor_Init();
     void Motor_Enable();
     void Motor_Disable();
-    void calculatePID();
-    void setMotorSpeed(int speed);
-    // void adjustPIDParameters(String input);
+    void Motor_Stop(Motor_t motor);
+    void Motor_SetDuty(Motor_t motor, int duty);   // duty in [-255,255], positive = clamp
+
+    /* CAN */
+    void CAN_Init();
+    void CAN_Update();
 }
 
 #endif
