@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="FlexGripper">
+  <link
+    name="FlexGripper">
+    <inertial>
+      <origin
+        xyz="0.00119620252724253 1.17367165524628E-05 -0.0449970827543455"
+        rpy="0 0 0" />
+      <mass
+        value="0.0267188131008028" />
+      <inertia
+        ixx="7.41943037248582E-06"
+        ixy="2.27416632284192E-08"
+        ixz="-2.95964513363966E-07"
+        iyy="3.49832340827444E-06"
+        iyz="-2.77974615978198E-08"
+        izz="5.32499402132981E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://FlexGripper/meshes/FlexGripper.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://FlexGripper/meshes/FlexGripper.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="finger_left">
+    <inertial>
+      <origin
+        xyz="-0.00047322 -0.0032094 0.017855"
+        rpy="0 0 0" />
+      <mass
+        value="0.0016299" />
+      <inertia
+        ixx="2.3741E-07"
+        ixy="1.0378E-09"
+        ixz="-6.2663E-09"
+        iyy="2.2693E-07"
+        iyz="4.8249E-08"
+        izz="2.331E-08" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://FlexGripper/meshes/finger_left.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://FlexGripper/meshes/finger_left.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="finger_left_joint"
+    type="revolute">
+    <origin
+      xyz="0.00025007 0.00925 -0.03825"
+      rpy="0 0 0" />
+    <parent
+      link="FlexGripper" />
+    <child
+      link="finger_left" />
+    <axis
+      xyz="-1 0 0" />
+    <limit
+      lower="-1.57"
+      upper="1.57"
+      effort="20"
+      velocity="3" />
+  </joint>
+  <link
+    name="finger_right">
+    <inertial>
+      <origin
+        xyz="-0.00047322 0.0032094 0.017855"
+        rpy="0 0 0" />
+      <mass
+        value="0.0016299" />
+      <inertia
+        ixx="2.3741E-07"
+        ixy="-1.0378E-09"
+        ixz="-6.2663E-09"
+        iyy="2.2693E-07"
+        iyz="-4.8249E-08"
+        izz="2.331E-08" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://FlexGripper/meshes/finger_right.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://FlexGripper/meshes/finger_right.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="figer_right_joint"
+    type="revolute">
+    <origin
+      xyz="0.00025007 -0.00925 -0.03825"
+      rpy="0 0 0" />
+    <parent
+      link="FlexGripper" />
+    <child
+      link="finger_right" />
+    <axis
+      xyz="-1 0 0" />
+    <limit
+      lower="-1.57"
+      upper="1.57"
+      effort="20"
+      velocity="3" />
+  </joint>
+</robot>
