@@ -19,7 +19,7 @@ namespace HAL
         float angle_right;
         float speed_left;
         float speed_right;
-        float current;
+        float current_ma;   // total motor current in mA
     } Grip_Info_t;
 
 }

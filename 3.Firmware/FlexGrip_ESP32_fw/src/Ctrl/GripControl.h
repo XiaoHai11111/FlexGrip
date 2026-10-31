@@ -32,6 +32,12 @@ void SetMotionSpeed(float degPerSec);
 // Set per-motor velocity feedforward (PWM per deg/s).
 void SetFeedforward(float left, float right);
 
+// Set the gripping current limit in mA (0 = no current limiting).
+void SetCurrentLimit(float milliAmps);
+
+// Set the current-loop PI gains (used for live tuning).
+void SetCurrentGains(float kp, float ki);
+
 void SetEnabled(bool enabled);
 bool IsEnabled();
 

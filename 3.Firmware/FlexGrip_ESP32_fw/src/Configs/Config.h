@@ -63,6 +63,15 @@
 #define GRIP_RIGHT_FF               2.2f
 #define GRIP_VEL_DEADBAND           30.0f
 
+/* Current sense (1 ohm resistor in series with the motor supply) */
+#define GRIP_CURRENT_GAIN           1.0f
+#define GRIP_CURRENT_MAX_MA         1000.0f
+
+/* Current loop (gripping force control) */
+#define GRIP_CURRENT_DEFAULT_MA     0.0f
+#define GRIP_CURRENT_KP             0.5f
+#define GRIP_CURRENT_KI             2.0f
+
 /* CAN protocol (DummyHand compatible) */
 #define GRIP_CAN_NODE_ID            7
 #define GRIP_CAN_MODE_SET_CURRENT   0x01

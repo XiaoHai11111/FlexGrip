@@ -39,6 +39,11 @@ namespace
     float lastOutLeft = 0.0f;
     float lastOutRight = 0.0f;
 
+    float currentLimitMa = GRIP_CURRENT_DEFAULT_MA;
+    float currentKp = GRIP_CURRENT_KP;
+    float currentKi = GRIP_CURRENT_KI;
+    float currentIntegral = 0.0f;
+
     // Duty convention: duty > 0 means "close/clamp" for that motor.
     // Left closes by increasing the angle, right closes by decreasing it.
     static const float kLeftClampSign = +1.0f;
@@ -200,8 +205,32 @@ void Update(float dt)
     lastOutLeft = outLeft;
     lastOutRight = outRight;
 
-    const int dutyLeft = (int)(kLeftClampSign * outLeft);
-    const int dutyRight = (int)(kRightClampSign * outRight);
+    int dutyLeft = (int)(kLeftClampSign * outLeft);
+    int dutyRight = (int)(kRightClampSign * outRight);
+
+    // Current loop / gripping force limit. Both motors share one sense
+    // resistor, so the limit acts on the combined duty of the two motors.
+    if (currentLimitMa > 0.0f)
+    {
+        const float curErr = currentLimitMa - info.current_ma;
+        currentIntegral += currentKi * curErr * dt;
+        currentIntegral = constrain(currentIntegral, 0.0f, 2.0f * GRIP_PID_OUTPUT_MAX);
+
+        float dutyLimit = currentKp * curErr + currentIntegral;
+        dutyLimit = constrain(dutyLimit, 0.0f, 2.0f * GRIP_PID_OUTPUT_MAX);
+
+        const int totalDuty = abs(dutyLeft) + abs(dutyRight);
+        if (totalDuty > 0 && totalDuty > (int)dutyLimit)
+        {
+            const float scale = dutyLimit / (float)totalDuty;
+            dutyLeft = (int)(dutyLeft * scale);
+            dutyRight = (int)(dutyRight * scale);
+        }
+    }
+    else
+    {
+        currentIntegral = 0.0f;
+    }
 
     HAL::Motor_SetDuty(HAL::MOTOR_LEFT, dutyLeft);
     HAL::Motor_SetDuty(HAL::MOTOR_RIGHT, dutyRight);
@@ -256,6 +285,24 @@ void SetFeedforward(float leftFf, float rightFf)
     right.ff = constrain(rightFf, 0.0f, 10.0f);
 }
 
+void SetCurrentLimit(float milliAmps)
+{
+    if (milliAmps < 0.0f)
+        milliAmps = 0.0f;
+    if (milliAmps > GRIP_CURRENT_MAX_MA)
+        milliAmps = GRIP_CURRENT_MAX_MA;
+
+    currentLimitMa = milliAmps;
+    if (currentLimitMa <= 0.0f)
+        currentIntegral = 0.0f;
+}
+
+void SetCurrentGains(float kp, float ki)
+{
+    currentKp = constrain(kp, 0.0f, 20.0f);
+    currentKi = constrain(ki, 0.0f, 100.0f);
+}
+
 void SetEnabled(bool flag)
 {
     if (flag == enabled)
@@ -298,6 +345,7 @@ void PrintStatus()
                   left.setpoint, info.angle_left,
                   right.setpoint, info.angle_right,
                   lastOutLeft, lastOutRight);
+    Serial.printf("[Grip] cur=%.0fmA lim=%.0fmA\r\n", info.current_ma, currentLimitMa);
 }
 
 }  // namespace GripControl

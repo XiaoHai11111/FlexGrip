@@ -73,11 +73,16 @@ void HAL::ADC_Current_Update()
     float volCurrent = ((float)currentSum / numSamples) *
                        (ANGLE_ADC_VOLTAGE_MAX / ANGLE_ADC_RAW_MAX);
 
-    float current = 2.0f * (volInput - volCurrent);
-    if (current < 0.0f)
-        current = 0.0f;
+    // Motor supply current flows through a 1 ohm sense resistor between 5 V
+    // and the DRV8833 VM pin.
+    //   GPIO12 (CURRENT_INPUT_PIN) = 2.5 V reference (5 V / 2 divider).
+    //   GPIO14 (CURRENT_PIN)        = VM / 2 (divider from the sense node).
+    //   I(mA) = (5 V - VM) / 1 ohm * 1000 = 2 * (Vref - Vsen/2) in mV.
+    float currentMa = GRIP_CURRENT_GAIN * 2.0f * (volInput - volCurrent);
+    if (currentMa < 0.0f)
+        currentMa = 0.0f;
 
-    grip_info.current = current;
+    grip_info.current_ma = currentMa;
 }
 
 void HAL::ADC_GetInfo(Grip_Info_t* info)
@@ -86,5 +91,5 @@ void HAL::ADC_GetInfo(Grip_Info_t* info)
     info->angle_right = grip_info.angle_right;
     info->speed_left = grip_info.speed_left;
     info->speed_right = grip_info.speed_right;
-    info->current = grip_info.current;
+    info->current_ma = grip_info.current_ma;
 }

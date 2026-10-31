@@ -8,7 +8,7 @@ FlexGrip 是一个基于 ESP32-PICO-D4 的直流有刷电机夹爪项目。一�
 
 - [x] 双路直流有刷电机 DRV8833 H 桥驱动，左右爪独立 PWM
 - [x] 两路 RDC506018A 模拟角度编码器读取与电压→角度标定
-- [x] 电机电流采样（基础实现，暂未接入控制闭环）
+- [x] 电机电流采样与电流环（夹持力限幅）
 - [x] 夹爪运动学：0~45 输入 ↔ 左右电机目标角度映射
 - [x] 位置闭环：匀速运动轨迹 + 速度前馈 + 速度阻尼 + 到位积分
 - [x] 串口命令控制与在线调参（angle / open / close / pid / ki / speed / ff 等）
@@ -16,7 +16,7 @@ FlexGrip 是一个基于 ESP32-PICO-D4 的直流有刷电机夹爪项目。一�
 - [x] SolidWorks 结构模型与 ROS/URDF + Gazebo 仿真包
 - [x] 原理图、PCB Gerber 与网表
 - [ ] CAN 与机械臂主控实物联调
-- [ ] 电流/夹持力闭环
+- [x] 电流/夹持力闭环（限幅实现，待带载标定）
 - [ ] 编码器零位自动标定（ANGLE_OFFSET 尚未启用）
 - [ ] 控制参数非易失保存与上电恢复
 - [ ] 与 DummyRobot 主控完整抓取联调
@@ -102,6 +102,8 @@ angle <0~45>          设置开口量（0 = 闭合/夹紧，45 = 打开）
 open / close          全开 / 闭合
 enable / disable      使能 / 失能
 status                打印当前状态
+current <mA>          设置夹持电流限值（0 = 不限流）
+curpid <kp> <ki>      设置电流环 PI 增益
 pid <kp> <ki> <kd>    设置位置 PID 增益
 ki <left> <right>     设置左右到位积分增益
 speed <deg/s>         设置运动速度
@@ -223,7 +225,7 @@ E:\Projects\FlexGrip\3.Firmware\FlexGrip_ESP32_fw
 - 夹爪断电时会向打开方向滑移，上电后第一条指令从其自然停住的位置起步。
 - CAN 控制已实现并编译通过，尚未与机械臂主控实物联调。
 - 编码器零位偏移 `ANGLE_OFFSET_LEFT/RIGHT` 尚未启用，当前直接使用实测角度标定。
-- 电流采样为基础实现，尚未接入力/电流闭环。
+- 电流环（夹持力限幅）已接入，但 PI 增益与电流标定需在真实夹持负载下校准。
 - DummyRobot 主控 `DummyHand::SetAngle` 目前硬编码限幅到 30，需把其中 `30` 改为 `45` 才能使用完整行程。
 
 ## 协作约定

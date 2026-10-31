@@ -49,9 +49,17 @@ void HAL::CAN_Update()
         }
         else if (rxFrame.MsgID == kSetCurrentId && rxFrame.FIR.B.DLC >= 4)
         {
-            float current = 0.0f;
-            memcpy(&current, rxFrame.data.u8, sizeof(current));
-            Ctrl::GripControl::SetEnabled(current > 0.0f);
+            float amps = 0.0f;
+            memcpy(&amps, rxFrame.data.u8, sizeof(amps));
+            if (amps > 0.0f)
+            {
+                Ctrl::GripControl::SetEnabled(true);
+                Ctrl::GripControl::SetCurrentLimit(amps * 1000.0f);
+            }
+            else
+            {
+                Ctrl::GripControl::SetEnabled(false);
+            }
         }
     }
 }

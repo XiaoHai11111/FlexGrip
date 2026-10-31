@@ -36,7 +36,7 @@ void HAL::Update()
     HAL::ADC_Angle_Update();
 
     uint32_t nowMillis = millis();
-    if (nowMillis - lastCurrentMillis >= 50)
+    if (nowMillis - lastCurrentMillis >= 5)
     {
         lastCurrentMillis = nowMillis;
         HAL::ADC_Current_Update();

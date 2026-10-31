@@ -27,7 +27,7 @@ void HAL::Serial_Init()
     Serial.println(VERSION_FIRMWARE_NAME);
     Serial.println("Version: " VERSION_SOFTWARE);
     Serial.println("Author: " VERSION_AUTHOR_NAME);
-    Serial.println("Commands: angle <0~45>, open, close, enable, disable, status, pid <kp> <ki> <kd>, ki <left> <right>, speed <deg/s>, ff <left> <right>");
+    Serial.println("Commands: angle <0~45>, open, close, enable, disable, status, current <mA>, curpid <kp> <ki>, pid <kp> <ki> <kd>, ki <left> <right>, speed <deg/s>, ff <left> <right>");
 }
 
 void HAL::Serial_Update()
@@ -62,6 +62,33 @@ void HAL::Serial_Update()
         else if (cmd.equalsIgnoreCase("status"))
         {
             Ctrl::GripControl::PrintStatus();
+        }
+        else if (cmd.startsWith("current"))
+        {
+            float ma = 0.0f;
+            if (sscanf(cmd.c_str(), "current %f", &ma) == 1)
+            {
+                Ctrl::GripControl::SetCurrentLimit(ma);
+                Serial.printf("ok current %.0f\r\n", ma);
+            }
+            else
+            {
+                Serial.println("err usage: current <mA> (0=off)");
+            }
+        }
+        else if (cmd.startsWith("curpid"))
+        {
+            float kp = 0.0f;
+            float ki = 0.0f;
+            if (sscanf(cmd.c_str(), "curpid %f %f", &kp, &ki) == 2)
+            {
+                Ctrl::GripControl::SetCurrentGains(kp, ki);
+                Serial.printf("ok curpid %.3f %.3f\r\n", kp, ki);
+            }
+            else
+            {
+                Serial.println("err usage: curpid <kp> <ki>");
+            }
         }
         else if (cmd.startsWith("pid"))
         {
